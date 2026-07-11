@@ -10,13 +10,14 @@
   function normalize(s) {
     return toHalfWidth(String(s ?? ''))
       .toLowerCase()
-      .replace(/[\s.·,]/g, '');
+      .replace(/(?<!\d)\.|\.(?!\d)/g, '')
+      .replace(/[\s·,]/g, '');
   }
 
   function matchAnswer(input, expected) {
     const n = normalize(input);
     if (!n) return false;
-    return String(expected).split('/').some((alt) => normalize(alt) === n);
+    return String(expected).split('|').some((alt) => normalize(alt) === n);
   }
 
   function gradeBlanks(inputs, expected) {
@@ -24,16 +25,18 @@
     return { correct, allCorrect: correct.every(Boolean) };
   }
 
-  function extractNumber(s) {
-    const m = toHalfWidth(String(s ?? '')).replace(/,/g, '').match(/-?\d+(\.\d+)?/);
-    return m ? parseFloat(m[0]) : null;
+  function extractNumbers(s) {
+    return (toHalfWidth(String(s ?? '')).replace(/,/g, '').match(/-?\d+(\.\d+)?/g) || []).map(parseFloat);
   }
 
   function gradeCalc(input, expectedValue) {
-    const expNum = extractNumber(expectedValue);
-    const inNum = extractNumber(input);
-    if (expNum !== null && inNum !== null) return inNum === expNum;
-    return matchAnswer(input, expectedValue);
+    const inNums = extractNumbers(input);
+    return String(expectedValue).split('|').some((alt) => {
+      const expNums = extractNumbers(alt);
+      if (expNums.length && inNums.length === expNums.length &&
+          expNums.every((v, i) => inNums[i] === v)) return true;
+      return matchAnswer(input, alt);
+    });
   }
 
   function findKeywords(input, keywords) {

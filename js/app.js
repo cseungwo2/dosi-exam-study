@@ -62,6 +62,10 @@
     });
   }
 
+  function displayAnswer(s) {
+    return String(s).split('|').join(' 또는 ');
+  }
+
   function circled(i) {
     // ① is U+2460; supports up to 20 items, falls back to plain number.
     if (i >= 1 && i <= 20) return String.fromCodePoint(0x2460 + (i - 1));
@@ -319,12 +323,7 @@
 
   function finalizeAttempt(q, isCorrect, lastAnswerValue) {
     var cur = getEntry(q.id);
-    var nextWrongNote;
-    if (isCorrect) {
-      nextWrongNote = session.mode === 'review' ? false : cur.inWrongNote;
-    } else {
-      nextWrongNote = true;
-    }
+    var nextWrongNote = !isCorrect;
     setEntry(q.id, {
       correct: cur.correct + (isCorrect ? 1 : 0),
       wrong: cur.wrong + (isCorrect ? 0 : 1),
@@ -356,7 +355,7 @@
       if (gradeBtn) gradeBtn.disabled = true;
 
       var expectedList = expected.map(function (exp, i) {
-        return '<div>' + circled(i + 1) + ' 정답: ' + escapeHtml(exp) + '</div>';
+        return '<div>' + circled(i + 1) + ' 정답: ' + escapeHtml(displayAnswer(exp)) + '</div>';
       }).join('');
       resultEl.innerHTML =
         '<div class="result-box">' +
@@ -379,7 +378,7 @@
       resultEl.innerHTML =
         '<div class="result-box">' +
         '<div class="result-summary ' + (isOk ? 'is-correct' : 'is-wrong') + '">' +
-        (isOk ? '정답' : '오답') + ' (정답: ' + escapeHtml(q.answer.calc.value) + ')' +
+        (isOk ? '정답' : '오답') + ' (정답: ' + escapeHtml(displayAnswer(q.answer.calc.value)) + ')' +
         '</div>' +
         '<div class="calc-solution pre">' + escapeHtml(q.answer.calc.solution) + '</div>' +
         '</div>';

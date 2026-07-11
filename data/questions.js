@@ -751,9 +751,8 @@ const QUESTIONS = [
     "type": "draw",
     "question": "도로모퉁이 길이의 기준을 하단의 도로 모퉁이에 표시하시오. (4점)",
     "answer": {
-      "drawFigure": "images/2020-1-04-answer.jpg"
+      "drawFigure": "images/2020-1-04.jpg"
     },
-    "figure": "images/2020-1-04.jpg",
     "source": "기출"
   },
   {
@@ -2045,9 +2044,8 @@ const QUESTIONS = [
     "type": "draw",
     "question": "도로모퉁이 길이의 기준을 하단의 도로 모퉁이에 표시하시오. (4점)",
     "answer": {
-      "drawFigure": "images/2021-4-02-answer.jpg"
+      "drawFigure": "images/2021-4-02.jpg"
     },
-    "figure": "images/2021-4-02.jpg",
     "source": "기출"
   },
   {
@@ -2973,9 +2971,8 @@ const QUESTIONS = [
     "question": "도로모퉁이 길이의 기준을 하단의 도로 모퉁이에 표시하시오. (3점)",
     "answer": {
       "essay": null,
-      "drawFigure": "images/2023-1-06-answer.jpg"
+      "drawFigure": "images/2023-1-06.jpg"
     },
-    "figure": "images/2023-1-06.jpg",
     "source": "기출"
   },
   {

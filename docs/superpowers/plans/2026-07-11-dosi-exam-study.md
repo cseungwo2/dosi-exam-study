@@ -29,7 +29,7 @@
 **Interfaces:**
 - Produces (전역 `Grading` 객체, node에서는 `globalThis.Grading`):
   - `normalize(s: string): string` — 소문자화, 공백·마침표 제거, 전각→반각
-  - `matchAnswer(input: string, expected: string): boolean` — normalize 후 동등 비교, `/`로 구분된 복수 허용답(`"국토교통부장관/국토부장관"`) 중 하나면 true
+  - `matchAnswer(input: string, expected: string): boolean` — normalize 후 동등 비교, `|`로 구분된 복수 허용답(`"국토교통부장관|국토부장관"`) 중 하나면 true (`/`는 축척 표기와 충돌하여 `|`로 확정)
   - `gradeBlanks(inputs: string[], expected: string[]): {correct: boolean[], allCorrect: boolean}`
   - `gradeCalc(input: string, expectedValue: string): boolean` — 숫자만 추출해 비교 (`"25%"`→`25`, `"10층"`→`10`), 숫자 없으면 matchAnswer로 폴백
   - `findKeywords(input: string, keywords: string[]): {keyword: string, found: boolean}[]` — normalize 기준 포함 여부
@@ -185,7 +185,7 @@ Agent tool로 6개 general-purpose 에이전트 동시 실행. 묶음: `15154945
   "figureNeeded": []
 }
 ```
-- 규칙: 사진은 90° 회전돼 있음(세로 텍스트) / 페이지 상단 헤더에서 연도·회차 읽기 — 헤더가 없으면 직전 사진과 같은 회차로 간주 / 소문항(가·나, 1)·2))은 별도 문제로 분리하고 id에 `-a`,`-b` 접미사 / 손글씨 필기 무시 / `type` 판정: 빈칸 기호(①㉠괄호)가 있고 정답이 단어 나열이면 `blank`, 수식·계산이면 `calc`, 작도 요구면 `draw`, 나머지 `essay` / `blanks` 배열 순서는 문제의 빈칸 순서와 일치 / 복수 허용 표기는 `/`로 구분 / 그림이 문제 이해에 필수면 `figureNeeded`에 기록
+- 규칙: 사진은 90° 회전돼 있음(세로 텍스트) / 페이지 상단 헤더에서 연도·회차 읽기 — 헤더가 없으면 직전 사진과 같은 회차로 간주 / 소문항(가·나, 1)·2))은 별도 문제로 분리하고 id에 `-a`,`-b` 접미사 / 손글씨 필기 무시 / `type` 판정: 빈칸 기호(①㉠괄호)가 있고 정답이 단어 나열이면 `blank`, 수식·계산이면 `calc`, 작도 요구면 `draw`, 나머지 `essay` / `blanks` 배열 순서는 문제의 빈칸 순서와 일치 / 복수 허용 표기는 `|`로 구분 / 그림이 문제 이해에 필수면 `figureNeeded`에 기록
 - 출력: 할당 묶음의 모든 문제를 JSON 배열로 `data/extracted/batch-N.json`에 Write (UTF-8)
 
 - [ ] **Step 2: 산출물 존재·파싱 확인**

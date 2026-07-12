@@ -8,12 +8,15 @@
   // Progress persistence
   // ---------------------------------------------------------------------
   function loadProgress() {
+    var raw;
     try {
-      var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : {};
+      var stored = localStorage.getItem(STORAGE_KEY);
+      raw = stored ? JSON.parse(stored) : {};
     } catch (e) {
-      return {};
+      raw = {};
     }
+    var migrated = Stats.migrateProgress(raw);
+    return migrated;
   }
 
   function saveProgress() {
@@ -24,17 +27,12 @@
     }
   }
 
-  var progress = loadProgress();
+  var loaded = loadProgress();
+  var progress = loaded.progress;
+  if (loaded.changed) saveProgress();
 
   function getEntry(id) {
-    var e = progress[id];
-    if (!e) return { correct: 0, wrong: 0, lastAnswer: '', inWrongNote: false };
-    return {
-      correct: e.correct || 0,
-      wrong: e.wrong || 0,
-      lastAnswer: e.lastAnswer != null ? e.lastAnswer : '',
-      inWrongNote: !!e.inWrongNote
-    };
+    return Stats.normalizeEntry(progress[id]);
   }
 
   function setEntry(id, patch) {
@@ -42,6 +40,7 @@
     progress[id] = {
       correct: patch.correct != null ? patch.correct : cur.correct,
       wrong: patch.wrong != null ? patch.wrong : cur.wrong,
+      lastCorrect: patch.lastCorrect != null ? patch.lastCorrect : cur.lastCorrect,
       lastAnswer: patch.lastAnswer != null ? patch.lastAnswer : cur.lastAnswer,
       inWrongNote: patch.inWrongNote != null ? patch.inWrongNote : cur.inWrongNote
     };
@@ -70,6 +69,12 @@
     // ① is U+2460; supports up to 20 items, falls back to plain number.
     if (i >= 1 && i <= 20) return String.fromCodePoint(0x2460 + (i - 1));
     return '(' + i + ')';
+  }
+
+  function questionLabel(q) {
+    // 하위 문항(2-a, 2-b …)은 number가 같아 화면에서 구분되지 않는다. 접미사는 id에만 있다.
+    var m = /-([a-z])$/.exec(q.id);
+    return q.number + '번' + (m ? ' (' + m[1] + ')' : '');
   }
 
   function questionById(id) {
@@ -104,16 +109,8 @@
     return { order: order, map: map };
   }
 
-  function accuracyOfIds(ids) {
-    var correct = 0, total = 0;
-    for (var i = 0; i < ids.length; i++) {
-      var e = progress[ids[i]];
-      if (e && (e.correct + e.wrong) > 0) {
-        correct += e.correct;
-        total += e.correct + e.wrong;
-      }
-    }
-    return total === 0 ? null : Math.round((correct / total) * 100);
+  function statsOfIds(ids) {
+    return Stats.accuracy(progress, ids);
   }
 
   function formatAcc(acc) {
@@ -152,25 +149,23 @@
   // ---------------------------------------------------------------------
   function renderHome() {
     var allIds = QUESTIONS.map(function (q) { return q.id; });
-    var answered = 0;
-    for (var i = 0; i < allIds.length; i++) {
-      var e = progress[allIds[i]];
-      if (e && (e.correct + e.wrong) > 0) answered++;
-    }
-    var total = allIds.length;
-    var overallAcc = accuracyOfIds(allIds);
+    var overall = statsOfIds(allIds);
+    var answered = overall.attempted;
+    var total = overall.total;
     var pct = total === 0 ? 0 : Math.round((answered / total) * 100);
     var wrongIds = wrongNoteIds();
 
     var groups = groupByRound();
     var roundButtons = groups.order.map(function (key) {
       var ids = groups.map[key];
-      var acc = accuracyOfIds(ids);
+      var s = statsOfIds(ids);
+      var parts = [ids.length + '문제', '정답률 ' + formatAcc(s.accuracy)];
+      if (s.attempted > 0) parts.push(s.attempted + '문제 풀이');
       return (
         '<button type="button" class="btn round-btn" data-action="start-round" data-round-key="' +
         escapeHtml(key) + '">' +
         '<span>' + escapeHtml(key) + '</span>' +
-        '<span class="round-count">(' + ids.length + '문제 · 정답률 ' + formatAcc(acc) + ')</span>' +
+        '<span class="round-count">(' + parts.join(' · ') + ')</span>' +
         '</button>'
       );
     }).join('');
@@ -180,7 +175,7 @@
       '<h1 class="home-header">도시계획기사 실기 기출 학습</h1>' +
       '<div class="progress-summary">' +
       '<div class="progress-bar"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>' +
-      '<p>' + answered + ' / ' + total + ' 문제 풀이 · 정답률 ' + formatAcc(overallAcc) + '</p>' +
+      '<p>' + answered + ' / ' + total + ' 문제 풀이 · 정답률 ' + formatAcc(overall.accuracy) + '</p>' +
       '</div>' +
       '<div class="btn-list">' +
       '<button type="button" class="btn btn-primary" data-action="start-random">전체 랜덤 (' + total + '문제)</button>' +
@@ -235,7 +230,7 @@
       return;
     }
 
-    var metaParts = [q.year + ' ' + q.round, q.number + '번'];
+    var metaParts = [q.year + ' ' + q.round, questionLabel(q)];
     if (q.points != null) metaParts.push(q.points + '점');
 
     var figureHtml = '';
@@ -323,12 +318,12 @@
 
   function finalizeAttempt(q, isCorrect, lastAnswerValue) {
     var cur = getEntry(q.id);
-    var nextWrongNote = !isCorrect;
     setEntry(q.id, {
       correct: cur.correct + (isCorrect ? 1 : 0),
       wrong: cur.wrong + (isCorrect ? 0 : 1),
+      lastCorrect: isCorrect,
       lastAnswer: lastAnswerValue,
-      inWrongNote: nextWrongNote
+      inWrongNote: !isCorrect
     });
     if (isCorrect) session.stats.correct++; else session.stats.wrong++;
   }

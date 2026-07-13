@@ -30,6 +30,28 @@ test('소문항 배점 합 = 총점 (100점 환산의 분모)', () => {
   assert.ok(Math.abs(sum - paper.totalPoints) < 1e-9);
 });
 
+test('한 시험지에 같은 문제가 두 번 나오지 않는다', () => {
+  // 전제: 수도권정비계획법 대문항은 이 4개 회차에 소문항까지 똑같이 실려 있다.
+  const REPEATED = ['2021-1-04', '2023-2-02', '2024-3-03', '2025-3-02'];
+  const dupes = M.parents(QUESTIONS).filter((p) =>
+    REPEATED.some((prefix) => p.ids[0].startsWith(prefix))
+  );
+  assert.equal(dupes.length, REPEATED.length);
+  assert.equal(new Set(dupes.map(M.signature)).size, 1, '전제 확인: 이 4개는 동일 문제');
+
+  for (let i = 0; i < 30; i++) {
+    const paper = M.pick(QUESTIONS);
+    const sigs = M.parents(QUESTIONS)
+      .filter((p) => p.ids.some((id) => paper.parentNo[id]))
+      .map(M.signature);
+    assert.equal(new Set(sigs).size, sigs.length, '시험지 안에 중복 문제');
+  }
+});
+
+test('중복 제거 후 고유 대문항은 13개보다 많다 — 뽑을 문제가 모자라지 않음', () => {
+  assert.ok(M.unique(QUESTIONS).length > M.TARGET_PARENTS);
+});
+
 test('시작할 때마다 문제 조합이 달라진다', () => {
   const key = () => M.pick(QUESTIONS).ids.join('|');
   const papers = new Set([key(), key(), key(), key(), key()]);

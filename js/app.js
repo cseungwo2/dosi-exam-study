@@ -113,6 +113,48 @@
     return Stats.accuracy(progress, ids);
   }
 
+  // ---------------------------------------------------------------------
+  // 모의고사 — 실제 시험 규격(100점 · 150분). 문제 뽑기는 js/mock.js
+  // ---------------------------------------------------------------------
+  function startMockSession() {
+    var paper = Mock.pick(QUESTIONS);
+    session = {
+      ids: paper.ids,
+      index: 0,
+      stats: { correct: 0, wrong: 0 },
+      mode: 'mock',
+      pts: paper.pts,
+      totalPoints: paper.totalPoints,
+      score: 0,
+      parents: paper.parents,
+      deadline: Date.now() + Mock.MINUTES * 60000
+    };
+    startTimer();
+    location.hash = '#quiz';
+    render();
+  }
+
+  var timerId = null;
+
+  function remainingText() {
+    var left = Math.max(0, Math.round((session.deadline - Date.now()) / 1000));
+    var m = Math.floor(left / 60);
+    var s = left % 60;
+    return (left === 0 ? '시간 종료 ' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+  }
+
+  function startTimer() {
+    stopTimer();
+    timerId = setInterval(function () {
+      var el = document.getElementById('mock-timer');
+      if (el) el.textContent = remainingText();
+    }, 1000);
+  }
+
+  function stopTimer() {
+    if (timerId) { clearInterval(timerId); timerId = null; }
+  }
+
   function formatAcc(acc) {
     return acc == null ? '-' : acc + '%';
   }
@@ -178,7 +220,8 @@
       '<p>' + answered + ' / ' + total + ' 문제 풀이 · 정답률 ' + formatAcc(overall.accuracy) + '</p>' +
       '</div>' +
       '<div class="btn-list">' +
-      '<button type="button" class="btn btn-primary" data-action="start-random">전체 랜덤 (' + total + '문제)</button>' +
+      '<button type="button" class="btn btn-primary" data-action="start-mock">모의고사 (' + Mock.TARGET_POINTS + '점 · ' + Mock.MINUTES + '분)</button>' +
+      '<button type="button" class="btn btn-secondary" data-action="start-random">전체 랜덤 (' + total + '문제)</button>' +
       '<button type="button" class="btn btn-secondary" data-action="start-review"' +
       (wrongIds.length === 0 ? ' disabled' : '') + '>오답노트 (' + wrongIds.length + '문제)</button>' +
       '</div>' +
@@ -248,6 +291,7 @@
       '<div class="page page-quiz">' +
       '<div class="quiz-header">' +
       '<a href="#home" class="link-home" data-action="go-home">← 홈</a>' +
+      (session.mode === 'mock' ? '<span class="mock-timer" id="mock-timer">' + remainingText() + '</span>' : '') +
       '<span class="quiz-progress">' + (session.index + 1) + ' / ' + session.ids.length + '</span>' +
       '</div>' +
       '<div class="quiz-meta">' + escapeHtml(metaParts.join(' · ')) + '</div>' +
@@ -326,6 +370,7 @@
       inWrongNote: !isCorrect
     });
     if (isCorrect) session.stats.correct++; else session.stats.wrong++;
+    if (session.mode === 'mock' && isCorrect) session.score += session.pts[q.id] || 0;
   }
 
   function handleGrade(q) {
@@ -460,17 +505,26 @@
   }
 
   function renderSummary() {
+    stopTimer();
     var stats = session.stats;
     var totalDone = stats.correct + stats.wrong;
+    var isMock = session.mode === 'mock';
+    var score = isMock ? Math.round(session.score) : 0;
+    var mockHtml = isMock
+      ? '<div class="mock-score ' + (score >= 60 ? 'is-correct' : 'is-wrong') + '">' +
+        score + ' / ' + session.totalPoints + '점 · ' + (score >= 60 ? '합격선 통과' : '합격선(60점) 미달') +
+        '</div>'
+      : '';
     var html =
       '<div class="page page-summary">' +
       '<div class="summary-box">' +
-      '<h2>세션 완료</h2>' +
+      '<h2>' + (isMock ? '모의고사 완료' : '세션 완료') + '</h2>' +
+      mockHtml +
       '<div class="summary-score">' +
       '<span class="mark-correct">맞음 ' + stats.correct + '</span>' +
       '<span class="mark-wrong">틀림 ' + stats.wrong + '</span>' +
       '</div>' +
-      '<p>총 ' + totalDone + '문제 풀이</p>' +
+      '<p>총 ' + totalDone + '문제 풀이' + (isMock ? ' (대문항 ' + session.parents + '개)' : '') + '</p>' +
       '<button type="button" class="btn btn-primary" data-action="go-home">홈으로</button>' +
       '</div>' +
       '</div>';
@@ -489,6 +543,10 @@
       startRoundSession(target.getAttribute('data-round-key'));
       return;
     }
+    if (action === 'start-mock') {
+      startMockSession();
+      return;
+    }
     if (action === 'start-random') {
       startRandomSession();
       return;
@@ -499,6 +557,7 @@
     }
     if (action === 'go-home') {
       e.preventDefault();
+      stopTimer();
       session = null;
       location.hash = '#home';
       render();

@@ -316,6 +316,20 @@ input[type="text"]:disabled, textarea:disabled {
 }
 .summary-box .summary-score .mark-correct { margin-right: 10px; }
 
+.mock-timer {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.mock-score {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-top: 8px;
+}
+.mock-score.is-correct { color: var(--correct); }
+.mock-score.is-wrong { color: var(--wrong); }
+
 .empty-hint {
   color: var(--muted);
   padding: 20px 0;

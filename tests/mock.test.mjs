@@ -18,10 +18,14 @@ test('대문항은 통째로 뽑힌다 — 소문항이 쪼개지지 않음', ()
   }
 });
 
-test('배점 합은 100점을 넘지 않고, 소문항 배점 합 = 총점', () => {
+test('한 회는 대문항 13개 — 실제 시험 분량', () => {
   const paper = M.pick(QUESTIONS);
-  assert.ok(paper.totalPoints <= M.TARGET_POINTS, `${paper.totalPoints}점`);
-  assert.ok(paper.totalPoints >= 90, `너무 적게 채워짐: ${paper.totalPoints}점`);
+  assert.equal(paper.parents, M.TARGET_PARENTS);
+  assert.equal(new Set(Object.values(paper.parentNo)).size, M.TARGET_PARENTS);
+});
+
+test('소문항 배점 합 = 총점 (100점 환산의 분모)', () => {
+  const paper = M.pick(QUESTIONS);
   const sum = paper.ids.reduce((a, id) => a + paper.pts[id], 0);
   assert.ok(Math.abs(sum - paper.totalPoints) < 1e-9);
 });

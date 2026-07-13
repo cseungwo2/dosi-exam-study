@@ -1,10 +1,13 @@
 (function (global) {
   'use strict';
 
-  // 실제 시험 규격: 100점 · 150분. 문제은행은 소문항 단위지만 대문항은
-  // 공통 지문("다음의 물음에 답하시오")을 공유하므로 대문항 통째로 뽑는다.
-  const TARGET_POINTS = 100;
-  const MINUTES = 150;
+  // 문제은행은 소문항 단위지만 대문항은 공통 지문("다음의 물음에 답하시오")을
+  // 공유하므로 대문항 통째로 뽑는다.
+  //
+  // 분량 기준은 배점이 아니라 대문항 개수다. 문제집 복원본은 회차당 40점어치
+  // (대문항 5~6개)만 담고 있어, 100점을 채우려 하면 실제 회차 2.5개분을 긁어와
+  // 대문항이 16개까지 불어난다. 실제 시험은 한 회 13문항.
+  const TARGET_PARENTS = 13;
   const DEFAULT_POINTS = 6;
 
   function parents(questions) {
@@ -26,26 +29,23 @@
     return a;
   }
 
-  // 배점 합이 100을 넘지 않는 선까지 대문항을 채운다. 호출할 때마다 다른 조합.
+  // 대문항 13개를 뽑는다. 호출할 때마다 다른 조합.
   function pick(questions) {
-    const picked = [];
-    let totalPoints = 0;
-    for (const p of shuffle(parents(questions))) {
-      if (totalPoints >= TARGET_POINTS) break;
-      if (totalPoints + p.points > TARGET_POINTS) continue;
-      picked.push(p);
-      totalPoints += p.points;
-    }
+    const picked = shuffle(parents(questions)).slice(0, TARGET_PARENTS);
     const ids = [];
     const pts = {};
-    for (const p of picked) {
+    const parentNo = {}; // 소문항 id → 대문항 순번 (진행 표시용)
+    let totalPoints = 0;
+    picked.forEach((p, i) => {
+      totalPoints += p.points;
       for (const id of p.ids) {
         pts[id] = p.points / p.ids.length; // 대문항 배점을 소문항에 균등 배분
+        parentNo[id] = i + 1;
         ids.push(id);
       }
-    }
-    return { ids, pts, totalPoints, parents: picked.length };
+    });
+    return { ids, pts, parentNo, totalPoints, parents: picked.length };
   }
 
-  global.Mock = { TARGET_POINTS, MINUTES, parents, pick };
+  global.Mock = { TARGET_PARENTS, parents, pick };
 })(typeof window !== 'undefined' ? window : globalThis);

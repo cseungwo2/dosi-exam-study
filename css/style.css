@@ -316,12 +316,6 @@ input[type="text"]:disabled, textarea:disabled {
 }
 .summary-box .summary-score .mark-correct { margin-right: 10px; }
 
-.mock-timer {
-  font-variant-numeric: tabular-nums;
-  font-weight: 700;
-  color: var(--text);
-}
-
 .mock-score {
   font-size: 1.3rem;
   font-weight: 700;

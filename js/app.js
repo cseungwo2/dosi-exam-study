@@ -114,7 +114,7 @@
   }
 
   // ---------------------------------------------------------------------
-  // 모의고사 — 실제 시험 규격(100점 · 150분). 문제 뽑기는 js/mock.js
+  // 모의고사 — 문제 뽑기는 js/mock.js
   // ---------------------------------------------------------------------
   function startMockSession() {
     var paper = Mock.pick(QUESTIONS);
@@ -124,35 +124,13 @@
       stats: { correct: 0, wrong: 0 },
       mode: 'mock',
       pts: paper.pts,
+      parentNo: paper.parentNo,
       totalPoints: paper.totalPoints,
       score: 0,
-      parents: paper.parents,
-      deadline: Date.now() + Mock.MINUTES * 60000
+      parents: paper.parents
     };
-    startTimer();
     location.hash = '#quiz';
     render();
-  }
-
-  var timerId = null;
-
-  function remainingText() {
-    var left = Math.max(0, Math.round((session.deadline - Date.now()) / 1000));
-    var m = Math.floor(left / 60);
-    var s = left % 60;
-    return (left === 0 ? '시간 종료 ' : '') + m + ':' + (s < 10 ? '0' : '') + s;
-  }
-
-  function startTimer() {
-    stopTimer();
-    timerId = setInterval(function () {
-      var el = document.getElementById('mock-timer');
-      if (el) el.textContent = remainingText();
-    }, 1000);
-  }
-
-  function stopTimer() {
-    if (timerId) { clearInterval(timerId); timerId = null; }
   }
 
   function formatAcc(acc) {
@@ -220,7 +198,7 @@
       '<p>' + answered + ' / ' + total + ' 문제 풀이 · 정답률 ' + formatAcc(overall.accuracy) + '</p>' +
       '</div>' +
       '<div class="btn-list">' +
-      '<button type="button" class="btn btn-primary" data-action="start-mock">모의고사 (' + Mock.TARGET_POINTS + '점 · ' + Mock.MINUTES + '분)</button>' +
+      '<button type="button" class="btn btn-primary" data-action="start-mock">모의고사</button>' +
       '<button type="button" class="btn btn-secondary" data-action="start-random">전체 랜덤 (' + total + '문제)</button>' +
       '<button type="button" class="btn btn-secondary" data-action="start-review"' +
       (wrongIds.length === 0 ? ' disabled' : '') + '>오답노트 (' + wrongIds.length + '문제)</button>' +
@@ -291,8 +269,11 @@
       '<div class="page page-quiz">' +
       '<div class="quiz-header">' +
       '<a href="#home" class="link-home" data-action="go-home">← 홈</a>' +
-      (session.mode === 'mock' ? '<span class="mock-timer" id="mock-timer">' + remainingText() + '</span>' : '') +
-      '<span class="quiz-progress">' + (session.index + 1) + ' / ' + session.ids.length + '</span>' +
+      '<span class="quiz-progress">' +
+      (session.mode === 'mock'
+        ? session.parentNo[id] + ' / ' + session.parents + '문항'
+        : (session.index + 1) + ' / ' + session.ids.length) +
+      '</span>' +
       '</div>' +
       '<div class="quiz-meta">' + escapeHtml(metaParts.join(' · ')) + '</div>' +
       '<div class="quiz-question pre">' + escapeHtml(q.question) + '</div>' +
@@ -505,14 +486,16 @@
   }
 
   function renderSummary() {
-    stopTimer();
     var stats = session.stats;
     var totalDone = stats.correct + stats.wrong;
     var isMock = session.mode === 'mock';
-    var score = isMock ? Math.round(session.score) : 0;
+    // 대문항 배점 합은 회차마다 다르므로 100점 만점으로 환산한다.
+    var score = isMock && session.totalPoints > 0
+      ? Math.round((session.score / session.totalPoints) * 100)
+      : 0;
     var mockHtml = isMock
       ? '<div class="mock-score ' + (score >= 60 ? 'is-correct' : 'is-wrong') + '">' +
-        score + ' / ' + session.totalPoints + '점 · ' + (score >= 60 ? '합격선 통과' : '합격선(60점) 미달') +
+        score + '점 · ' + (score >= 60 ? '합격선 통과' : '합격선(60점) 미달') +
         '</div>'
       : '';
     var html =
@@ -524,7 +507,7 @@
       '<span class="mark-correct">맞음 ' + stats.correct + '</span>' +
       '<span class="mark-wrong">틀림 ' + stats.wrong + '</span>' +
       '</div>' +
-      '<p>총 ' + totalDone + '문제 풀이' + (isMock ? ' (대문항 ' + session.parents + '개)' : '') + '</p>' +
+      '<p>' + (isMock ? session.parents + '문항 (소문항 ' + totalDone + '개)' : '총 ' + totalDone + '문제') + ' 풀이</p>' +
       '<button type="button" class="btn btn-primary" data-action="go-home">홈으로</button>' +
       '</div>' +
       '</div>';
@@ -557,7 +540,6 @@
     }
     if (action === 'go-home') {
       e.preventDefault();
-      stopTimer();
       session = null;
       location.hash = '#home';
       render();

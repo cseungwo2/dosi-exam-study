@@ -205,6 +205,10 @@
       '</div>' +
       '<h2>회차별</h2>' +
       '<div class="btn-list">' + roundButtons + '</div>' +
+      '<div class="btn-list" style="margin-top:24px">' +
+      '<button type="button" class="btn btn-secondary" data-action="reset-progress"' +
+      (answered === 0 ? ' disabled' : '') + '>풀이 기록 초기화</button>' +
+      '</div>' +
       '</div>';
 
     app.innerHTML = html;
@@ -536,6 +540,13 @@
     }
     if (action === 'start-review') {
       startReviewSession();
+      return;
+    }
+    if (action === 'reset-progress') {
+      if (!confirm('풀이 기록을 모두 초기화할까요?\n정답률·풀이 수·오답노트가 전부 삭제됩니다.')) return;
+      progress = {};
+      try { localStorage.removeItem(STORAGE_KEY); } catch (err) { /* ignore */ }
+      render();
       return;
     }
     if (action === 'go-home') {

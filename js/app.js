@@ -183,10 +183,9 @@
       return (
         '<button type="button" class="btn round-btn" data-action="start-round" data-round-key="' +
         escapeHtml(key) + '">' +
-        '<span class="round-main">' +
         '<span class="round-name">' + escapeHtml(key) + '</span>' +
-        '<span class="round-count">' + ids.length + '문제 · 정답률 ' + formatAcc(s.accuracy) + '</span>' +
-        '</span>' +
+        '<span class="round-count">' + ids.length + '문제' +
+        (s.accuracy == null ? '' : ' · ' + s.accuracy + '%') + '</span>' +
         '<span class="round-gauge"><span class="round-gauge-fill" style="width:' + roundPct + '%"></span></span>' +
         '</button>'
       );
@@ -216,7 +215,7 @@
       '</div>' +
       '</div>' +
       '<h2>회차별</h2>' +
-      '<div class="btn-list">' + roundButtons + '</div>' +
+      '<div class="round-grid">' + roundButtons + '</div>' +
       '</div>';
 
     app.innerHTML = html;

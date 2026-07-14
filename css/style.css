@@ -247,23 +247,34 @@ button, input, textarea {
 
 .btn-list { margin-bottom: 8px; }
 
+.round-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+@media (min-width: 560px) {
+  .round-grid { grid-template-columns: repeat(3, 1fr); }
+}
 .round-btn {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 8px;
-  padding: 13px 16px;
+  gap: 6px;
+  min-height: 0;
+  padding: 11px 13px 12px;
+  margin-bottom: 0;
 }
-.round-btn .round-main {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 8px;
+.round-btn .round-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.round-btn .round-name { font-weight: 600; }
 .round-btn .round-count {
   color: var(--faint);
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }

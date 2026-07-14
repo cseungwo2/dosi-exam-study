@@ -179,36 +179,44 @@
     var roundButtons = groups.order.map(function (key) {
       var ids = groups.map[key];
       var s = statsOfIds(ids);
-      var parts = [ids.length + '문제', '정답률 ' + formatAcc(s.accuracy)];
-      if (s.attempted > 0) parts.push(s.attempted + '문제 풀이');
+      var roundPct = ids.length === 0 ? 0 : Math.round((s.attempted / ids.length) * 100);
       return (
         '<button type="button" class="btn round-btn" data-action="start-round" data-round-key="' +
         escapeHtml(key) + '">' +
-        '<span>' + escapeHtml(key) + '</span>' +
-        '<span class="round-count">(' + parts.join(' · ') + ')</span>' +
+        '<span class="round-main">' +
+        '<span class="round-name">' + escapeHtml(key) + '</span>' +
+        '<span class="round-count">' + ids.length + '문제 · 정답률 ' + formatAcc(s.accuracy) + '</span>' +
+        '</span>' +
+        '<span class="round-gauge"><span class="round-gauge-fill" style="width:' + roundPct + '%"></span></span>' +
         '</button>'
       );
     }).join('');
 
     var html =
       '<div class="page page-home">' +
-      '<h1 class="home-header">도시계획기사 실기 기출 학습</h1>' +
-      '<div class="progress-summary">' +
+      '<div class="home-top">' +
+      '<h1 class="home-header">도시계획기사 실기<span class="home-sub">기출 학습</span></h1>' +
+      '<button type="button" class="btn-reset" data-action="reset-progress"' +
+      (answered === 0 ? ' disabled' : '') + '>기록 초기화</button>' +
+      '</div>' +
+      '<div class="stat-card">' +
+      '<div class="stat-row">' +
+      '<div class="stat"><span class="stat-value">' + answered + '<em>/' + total + '</em></span><span class="stat-label">푼 문제</span></div>' +
+      '<div class="stat"><span class="stat-value">' + formatAcc(overall.accuracy) + '</span><span class="stat-label">정답률</span></div>' +
+      '<div class="stat"><span class="stat-value">' + wrongIds.length + '</span><span class="stat-label">오답노트</span></div>' +
+      '</div>' +
       '<div class="progress-bar"><div class="progress-bar-fill" style="width:' + pct + '%"></div></div>' +
-      '<p>' + answered + ' / ' + total + ' 문제 풀이 · 정답률 ' + formatAcc(overall.accuracy) + '</p>' +
       '</div>' +
       '<div class="btn-list">' +
       '<button type="button" class="btn btn-primary" data-action="start-mock">모의고사</button>' +
-      '<button type="button" class="btn btn-secondary" data-action="start-random">전체 랜덤 (' + total + '문제)</button>' +
+      '<div class="btn-row">' +
+      '<button type="button" class="btn btn-secondary" data-action="start-random">전체 랜덤</button>' +
       '<button type="button" class="btn btn-secondary" data-action="start-review"' +
-      (wrongIds.length === 0 ? ' disabled' : '') + '>오답노트 (' + wrongIds.length + '문제)</button>' +
+      (wrongIds.length === 0 ? ' disabled' : '') + '>오답노트 ' + wrongIds.length + '</button>' +
+      '</div>' +
       '</div>' +
       '<h2>회차별</h2>' +
       '<div class="btn-list">' + roundButtons + '</div>' +
-      '<div class="btn-list" style="margin-top:24px">' +
-      '<button type="button" class="btn btn-secondary" data-action="reset-progress"' +
-      (answered === 0 ? ' disabled' : '') + '>풀이 기록 초기화</button>' +
-      '</div>' +
       '</div>';
 
     app.innerHTML = html;

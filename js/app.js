@@ -226,10 +226,24 @@
     app.innerHTML = html;
   }
 
+  // 대문항(소문항 a·b·c 묶음) 단위로 섞는다 — 소문항 순서는 유지.
+  function shuffleByParent(ids) {
+    var order = [];
+    var map = {};
+    ids.forEach(function (id) {
+      var key = id.replace(/-[a-z]$/, '');
+      if (!map[key]) { map[key] = []; order.push(map[key]); }
+      map[key].push(id);
+    });
+    return shuffle(order).reduce(function (acc, g) { return acc.concat(g); }, []);
+  }
+
   function startRoundSession(key) {
     var groups = groupByRound();
     var ids = groups.map[key];
     if (!ids || !ids.length) return;
+    // 예상 세트는 실전처럼 풀 때마다 출제 순서가 달라진다
+    if (typeof EXAM_2026_2 !== 'undefined' && key === EXAM_2026_2.key) ids = shuffleByParent(ids);
     session = { ids: ids, index: 0, stats: { correct: 0, wrong: 0 }, mode: 'round' };
     location.hash = '#quiz';
     render();

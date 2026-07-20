@@ -192,8 +192,27 @@
       msg.className = 'lock-msg is-correct';
       form.querySelector('.lock-btn').disabled = true;
       input.disabled = true;
-      setTimeout(render, 700);
+      launchConfetti();
+      setTimeout(render, 1300);
     });
+  }
+
+  // 입장 성공 시 화면 아래에서 폭죽 이모지가 사방으로 터진다
+  function launchConfetti() {
+    var wrap = document.createElement('div');
+    wrap.className = 'confetti';
+    var EMOJI = ['🎉', '🎊', '✨', '🎆'];
+    for (var i = 0; i < 28; i++) {
+      var p = document.createElement('span');
+      p.textContent = EMOJI[i % EMOJI.length];
+      p.style.setProperty('--dx', ((Math.random() * 2 - 1) * 45).toFixed(1) + 'vw');
+      p.style.setProperty('--dy', (-(25 + Math.random() * 55)).toFixed(1) + 'vh');
+      p.style.setProperty('--delay', (Math.random() * 0.3).toFixed(2) + 's');
+      p.style.setProperty('--dur', (0.9 + Math.random() * 0.7).toFixed(2) + 's');
+      wrap.appendChild(p);
+    }
+    document.body.appendChild(wrap);
+    setTimeout(function () { wrap.remove(); }, 2200);
   }
 
   // ---------------------------------------------------------------------

@@ -152,9 +152,58 @@
   }
 
   // ---------------------------------------------------------------------
+  // 잠금화면 — 등록된 이름만 입장 (브라우저 세션 단위)
+  // ---------------------------------------------------------------------
+  var ALLOWED_NAMES = ['박종훈', '임형택', '조승우'];
+
+  function currentUser() {
+    try { return sessionStorage.getItem('dosi-user'); } catch (e) { return null; }
+  }
+
+  function renderLock() {
+    app.innerHTML =
+      '<div class="page page-lock">' +
+      '<div class="lock-box">' +
+      '<h1 class="lock-title">도시계획기사 실기<span class="home-sub">기출 학습</span></h1>' +
+      '<p class="lock-hint">이름을 입력해주세요</p>' +
+      '<form id="lock-form">' +
+      '<input type="text" class="lock-input" autocomplete="off" placeholder="이름">' +
+      '<button type="submit" class="btn btn-primary lock-btn">입장</button>' +
+      '</form>' +
+      '<p class="lock-msg" id="lock-msg"></p>' +
+      '</div>' +
+      '</div>';
+
+    var form = document.getElementById('lock-form');
+    var input = app.querySelector('.lock-input');
+    var msg = document.getElementById('lock-msg');
+    input.focus();
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = input.value.trim();
+      if (ALLOWED_NAMES.indexOf(name) === -1) {
+        msg.textContent = '비밀번호가 다릅니다.';
+        msg.className = 'lock-msg is-wrong';
+        input.select();
+        return;
+      }
+      try { sessionStorage.setItem('dosi-user', name); } catch (err) { /* ignore */ }
+      msg.textContent = name + '님 환영합니노!';
+      msg.className = 'lock-msg is-correct';
+      form.querySelector('.lock-btn').disabled = true;
+      input.disabled = true;
+      setTimeout(render, 700);
+    });
+  }
+
+  // ---------------------------------------------------------------------
   // Routing
   // ---------------------------------------------------------------------
   function render() {
+    if (!currentUser()) {
+      renderLock();
+      return;
+    }
     var hash = location.hash || '#home';
     if ((hash === '#quiz' || hash === '#review') && session) {
       renderQuizView();

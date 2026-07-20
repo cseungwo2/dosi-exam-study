@@ -493,3 +493,49 @@ input[type="text"]:disabled, textarea:disabled {
   padding: 20px 0;
   text-align: center;
 }
+
+/* ----------------------------------------------------------------------
+   잠금화면
+   ---------------------------------------------------------------------- */
+.page-lock {
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lock-box {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.lock-title {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.lock-hint {
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+
+.lock-input {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.lock-btn {
+  width: 100%;
+}
+
+.lock-msg {
+  min-height: 1.65em;
+  margin: 12px 0 0;
+  font-weight: 600;
+}
+
+.lock-msg.is-correct { color: var(--correct); }
+.lock-msg.is-wrong { color: var(--wrong); }

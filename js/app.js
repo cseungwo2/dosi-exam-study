@@ -106,9 +106,9 @@
       if (!map[key]) { map[key] = []; order.push(key); }
       map[key].push(q.id);
     }
-    // 예상문제 세트 — 기출 id를 참조하는 가상 회차, 목록 맨 앞에 노출
+    // 예상문제 세트 — 기출 id를 참조하는 가상 회차, 2026 제1회 다음에 노출
     if (typeof EXAM_2026_2 !== 'undefined') {
-      order.unshift(EXAM_2026_2.key);
+      order.push(EXAM_2026_2.key);
       map[EXAM_2026_2.key] = EXAM_2026_2.ids;
     }
     return { order: order, map: map };

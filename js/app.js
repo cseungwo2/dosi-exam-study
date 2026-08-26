@@ -106,11 +106,6 @@
       if (!map[key]) { map[key] = []; order.push(key); }
       map[key].push(q.id);
     }
-    // 예상문제 세트 — 기출 id를 참조하는 가상 회차, 2026 제1회 다음에 노출
-    if (typeof EXAM_2026_2 !== 'undefined') {
-      order.push(EXAM_2026_2.key);
-      map[EXAM_2026_2.key] = EXAM_2026_2.ids;
-    }
     return { order: order, map: map };
   }
 
@@ -294,24 +289,10 @@
     app.innerHTML = html;
   }
 
-  // 대문항(소문항 a·b·c 묶음) 단위로 섞는다 — 소문항 순서는 유지.
-  function shuffleByParent(ids) {
-    var order = [];
-    var map = {};
-    ids.forEach(function (id) {
-      var key = id.replace(/-[a-z]$/, '');
-      if (!map[key]) { map[key] = []; order.push(map[key]); }
-      map[key].push(id);
-    });
-    return shuffle(order).reduce(function (acc, g) { return acc.concat(g); }, []);
-  }
-
   function startRoundSession(key) {
     var groups = groupByRound();
     var ids = groups.map[key];
     if (!ids || !ids.length) return;
-    // 예상 세트는 실전처럼 풀 때마다 출제 순서가 달라진다
-    if (typeof EXAM_2026_2 !== 'undefined' && key === EXAM_2026_2.key) ids = shuffleByParent(ids);
     session = { ids: ids, index: 0, stats: { correct: 0, wrong: 0 }, mode: 'round' };
     location.hash = '#quiz';
     render();

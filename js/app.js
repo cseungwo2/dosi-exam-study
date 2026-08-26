@@ -188,7 +188,7 @@
         return;
       }
       try { sessionStorage.setItem('dosi-user', name); } catch (err) { /* ignore */ }
-      msg.textContent = name + '님 환영합니노!';
+      msg.textContent = name + '님 환영합니다!';
       msg.className = 'lock-msg is-correct';
       form.querySelector('.lock-btn').disabled = true;
       input.disabled = true;
